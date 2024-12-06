@@ -1,0 +1,40 @@
+---
+- name: playbook for patching
+  hosts: all
+  ignore_errors: true
+  become: true
+  vars:
+    app:
+      - httpd
+      - sshd
+  tasks:
+    #- name: Task1:check the basic services before patching
+    #  ansible.builtin.service:
+    #    name: "{{ item }}"
+    #    state: started
+    #  loop: "{{ app }}"
+
+    - name: Task2:Patching the server
+      shell: yum update -y
+        #ansible.builtin.yum:
+        #name: "kernel"
+        #state: latest
+
+    - name: Current running kernel version
+      debug:
+        msg: "latest kernel is:  {{ ansible_kernel }}"
+
+    - name: Getting available kernel version
+      shell: |
+        rpm -q kernel | sort -V | tail -1 | sed 's/kernel-//'
+      register: latest
+
+    - name: available kernel
+      debug:
+        msg: "{{ latest.stdout }}"
+
+    - name: Reboot the server
+      shell: reboot
+      when: ansible_kernel != latest.stdout
+
+
